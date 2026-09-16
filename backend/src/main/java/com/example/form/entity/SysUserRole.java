@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 @TableName("sys_user_role")
 public class SysUserRole implements Serializable {
 
-    @TableId(type = IdType.ASSIGN_ID)
+    @TableId(type = IdType.ASSIGN_UUID)
     private String id;
 
     private String userId;

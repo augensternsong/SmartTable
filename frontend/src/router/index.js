@@ -69,7 +69,7 @@ const routes = [
         path: 'system/perm',
         name: 'SystemPerm',
         component: () => import('@/views/admin/SystemPerm.vue'),
-        meta: { title: '权限管理', perm: 'sys:perm:update' }
+        meta: { title: '权限管理', perm: 'system:perm' }
       },
       // 个人中心
       {

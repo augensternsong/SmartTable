@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 @TableName("form_field_option")
 public class FormFieldOption implements Serializable {
 
-    @TableId(type = IdType.ASSIGN_ID)
+    @TableId(type = IdType.ASSIGN_UUID)
     private String id;
 
     private String fieldId;

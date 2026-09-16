@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 @TableName("sys_permission")
 public class SysPermission implements Serializable {
 
-    @TableId(type = IdType.ASSIGN_ID)
+    @TableId(type = IdType.ASSIGN_UUID)
     private String id;
 
     private String parentId;

@@ -43,6 +43,10 @@
 | 404 页 | `src/views/error/NotFound.vue` | ✅ |
 | 管理端-模板列表 | `src/views/admin/TemplateList.vue` | 增删改查/发布/归档/分配分组 ✅ |
 | 管理端-栏位管理 | `src/views/admin/TemplateField.vue` | 栏位增改/启停/选项编辑器 ✅ |
+| 管理端-用户管理 | `src/views/admin/SystemUser.vue` | 分页查询/增改删/分配角色/分配分组/重置密码 ✅ |
+| 管理端-角色管理 | `src/views/admin/SystemRole.vue` | 分页查询/增改删（内置禁删）/权限树分配 ✅ |
+| 管理端-用户分组 | `src/views/admin/SystemGroup.vue` | 分页查询/增改删/成员数/分配用户 ✅ |
+| 管理端-权限管理 | `src/views/admin/SystemPerm.vue` | 权限只读树/类型标记/筛选 ✅ |
 
 ### API 模块（前端）
 - `src/api/auth.js` `src/api/user.js` `src/api/role.js`
@@ -51,34 +55,27 @@
 
 全部已就绪。
 
-## 三、未完成模块（在电脑端继续）
+## 三、系统管理页面（已完成 ✅）
 
-`src/router/index.js` 已为以下页面注册路由，但 **Vue 文件尚未创建**，导航到这些页会 404：
+4 个页面均已创建，`npm run build` 通过：
 
-| 待建文件 | 路由 | 权限码 | 后端 API |
-|---|---|---|---|
-| `src/views/admin/SystemUser.vue` | `/system/user` | `sys:user:update` | `SysUserController` |
-| `src/views/admin/SystemRole.vue` | `/system/role` | `sys:role:update` | `SysRoleController` |
-| `src/views/admin/SystemGroup.vue` | `/system/group` | `sys:group:update` | `SysUserGroupController` |
-| `src/views/admin/SystemPerm.vue` | `/system/perm` | `sys:perm:update` | `SysPermissionController`（只读树） |
+| 文件 | 路由 | 功能 |
+|---|---|---|
+| `src/views/admin/SystemUser.vue` | `/system/user` | 分页（用户名/昵称/角色/分组/状态过滤）、新建/编辑/删除（自己和超管禁删）、分配角色（非超管禁用超管选项）、分配分组、重置密码 |
+| `src/views/admin/SystemRole.vue` | `/system/role` | 分页/关键词、新建/编辑（编码不可改）、删除（内置角色禁删、有关联禁删）、`n-tree` 级联勾选分配权限（含半选父节点） |
+| `src/views/admin/SystemGroup.vue` | `/system/group` | 分页/关键词、新建/编辑/删除、成员数展示、勾选分配用户（带搜索） |
+| `src/views/admin/SystemPerm.vue` | `/system/perm` | 权限只读树，菜单/按钮类型标签，名称/编码筛选，展开收起 |
 
-### 实现指引
+> 注：路由守卫中权限管理页使用菜单权限码 `system:perm`（DB 中不存在 `sys:perm:update` 按钮权限，权限为只读）。
 
-1. **后端 API 与前端 API 模块均已就绪**，直接照 `TemplateList.vue` 的模式写这 4 个页面即可。
-2. 关键 DTO 字段参考（位于 `backend/src/main/java/com/example/form/dto/`）：
-   - `user/UserVO.java`：`id / username / nickname / email / phone / status / roleIds / groupIds`
-   - `user/UserSaveRequest.java`：含 `password`（新建必填，编辑为空不改）
-   - `role/RoleVO.java`：含 `permissionIds`；`RoleSaveRequest`：`roleCode` 大写字母开头
-   - `group/GroupVO.java`：含 `memberCount / userIds`；`GroupSaveRequest`
-   - `perm/PermissionNode.java`：树形结构，含 `children`
-3. 特殊接口：
-   - 用户分配角色：`PUT /sys/users/{id}/roles` body `{ roleIds }`
-   - 用户分配分组：`PUT /sys/users/{id}/groups` body `{ groupIds }`
-   - 用户重置密码：`PUT /sys/users/{id}/password` body `{ newPassword }`
-   - 角色分配权限：`PUT /sys/roles/{id}/permissions` body `{ permissionIds }`
-   - 分组分配用户：`PUT /sys/groups/{id}/users` body `{ userIds }`
-   - 当前用户不可分配角色：`GET /sys/users/editable-roles`
-   - 权限树：`GET /sys/permissions/tree`
+## 三·补、本轮增强（2026-09-16）
+
+1. **填写周期按栏位可选**：栏位编辑弹窗改为「启用填写周期」开关 + 周期天数；关闭则 `fillCycleDays=null`，该栏位永不超期。后端对可清空字段加 `@TableField(updateStrategy = ALWAYS)`，修复 `updateById` 默认忽略 null 导致无法取消周期的问题。
+2. **容器化依赖**：根目录新增 `docker-compose.yml`（`mysql:8.4.5` + `redis:7-alpine`，`pull_policy: never` 复用本机镜像）与 `.env.example`。
+3. **技术债**：删除草稿模板时级联清理 `form_field_option`，不再留孤儿选项。
+4. **单元测试**：新增 `NanoIdGeneratorTest`（10 项）与 `UserFormValueValidationTest`（8 项，覆盖必填/长度/正则/数值/日期/选项），`mvn test` 全绿。
+5. README 已补完整启动说明与待办（管理员查看/导出填报数据等）。
+6. **修复冷启动致命 bug（冒烟发现）**：全部 13 个实体的 String 主键原标 `IdType.ASSIGN_ID`，MyBatis-Plus 该策略会调用生成器的 Number 版 `nextId()`（被我们主动抛异常），导致全新库首次插入（初始化 admin）失败、应用无法启动。已统一切为 `IdType.ASSIGN_UUID`（走 `NanoIdGenerator.nextUUID()`），并同步 `application.yml` 全局 `id-type`。已用全新容器库验证：启动成功、admin 初始化为 8 位 NanoId、登录/JWT/分页接口正常。
 
 ## 四、桌面端启动步骤
 

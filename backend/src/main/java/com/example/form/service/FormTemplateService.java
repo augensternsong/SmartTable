@@ -10,9 +10,11 @@ import com.example.form.dto.template.TemplateDetailVO;
 import com.example.form.dto.template.TemplatePageRequest;
 import com.example.form.dto.template.TemplateSaveRequest;
 import com.example.form.dto.template.TemplateVO;
+import com.example.form.entity.FormFieldOption;
 import com.example.form.entity.FormTemplate;
 import com.example.form.entity.FormTemplateField;
 import com.example.form.entity.FormTemplateGroupAssign;
+import com.example.form.mapper.FormFieldOptionMapper;
 import com.example.form.mapper.FormTemplateFieldMapper;
 import com.example.form.mapper.FormTemplateGroupAssignMapper;
 import com.example.form.mapper.FormTemplateMapper;
@@ -35,6 +37,7 @@ public class FormTemplateService {
 
     private final FormTemplateMapper templateMapper;
     private final FormTemplateFieldMapper fieldMapper;
+    private final FormFieldOptionMapper optionMapper;
     private final FormTemplateGroupAssignMapper assignMapper;
     private final SysUserMapper sysUserMapper;
     private final TemplateCacheService cacheService;
@@ -118,10 +121,14 @@ public class FormTemplateService {
         if (!Constants.TEMPLATE_DRAFT.equals(template.getStatus())) {
             throw new BusinessException("仅草稿状态模板可删除, 已发布模板请改用归档");
         }
-        // 关联栏位/选项/分配一并清理
+        // 关联栏位选项/栏位/分组分配一并清理
         List<FormTemplateField> fields = fieldMapper.selectList(
                 new LambdaQueryWrapper<FormTemplateField>().eq(FormTemplateField::getTemplateId, id));
-        // 选项级联删除由 SQL 外键? 无, 这里手动删(简化: 仅清栏位, 选项留下孤儿由后台清理)
+        List<String> fieldIds = fields.stream().map(FormTemplateField::getId).collect(Collectors.toList());
+        if (!fieldIds.isEmpty()) {
+            optionMapper.delete(new LambdaQueryWrapper<FormFieldOption>()
+                    .in(FormFieldOption::getFieldId, fieldIds));
+        }
         fieldMapper.delete(new LambdaQueryWrapper<FormTemplateField>().eq(FormTemplateField::getTemplateId, id));
         assignMapper.delete(new LambdaQueryWrapper<FormTemplateGroupAssign>()
                 .eq(FormTemplateGroupAssign::getTemplateId, id));

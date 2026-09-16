@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 @TableName("user_form_value")
 public class UserFormValue implements Serializable {
 
-    @TableId(type = IdType.ASSIGN_ID)
+    @TableId(type = IdType.ASSIGN_UUID)
     private String id;
 
     private String userId;

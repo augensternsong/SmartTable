@@ -77,7 +77,13 @@
           <n-form-item-gi label="是否必填" path="required">
             <n-switch v-model:value="requiredBool" />
           </n-form-item-gi>
-          <n-form-item-gi label="填写周期(天)" path="fillCycleDays">
+          <n-form-item-gi label="填写周期" path="cycleEnabled">
+            <n-switch v-model:value="cycleEnabled">
+              <template #checked>周期更新</template>
+              <template #unchecked>无周期</template>
+            </n-switch>
+          </n-form-item-gi>
+          <n-form-item-gi v-if="cycleEnabled" label="周期天数" path="fillCycleDays">
             <n-input-number
               v-model:value="form.fillCycleDays"
               :min="1"
@@ -341,7 +347,7 @@ const form = reactive({
   minValue: null,
   maxValue: null,
   regexPattern: '',
-  fillCycleDays: 30,
+  fillCycleDays: null,
   placeholder: '',
   description: '',
   options: []
@@ -352,11 +358,16 @@ const requiredBool = computed({
   set: (v) => { form.required = v ? 1 : 0 }
 })
 
+// 填写周期可选: 关闭后该栏位不参与超期提醒(fillCycleDays 传 null)
+const cycleEnabled = computed({
+  get: () => form.fillCycleDays != null,
+  set: (v) => { form.fillCycleDays = v ? (form.fillCycleDays || 30) : null }
+})
+
 const rules = {
   fieldCode: { required: true, message: '请输入栏位编码', trigger: ['input', 'blur'] },
   fieldName: { required: true, message: '请输入栏位名称', trigger: ['input', 'blur'] },
-  fieldType: { required: true, message: '请选择栏位类型', trigger: ['change', 'blur'] },
-  fillCycleDays: { required: true, type: 'number', message: '请输入填写周期', trigger: ['input', 'blur'] }
+  fieldType: { required: true, message: '请选择栏位类型', trigger: ['change', 'blur'] }
 }
 
 function defaultForm() {
@@ -371,7 +382,7 @@ function defaultForm() {
     minValue: null,
     maxValue: null,
     regexPattern: '',
-    fillCycleDays: 30,
+    fillCycleDays: null,
     placeholder: '',
     description: '',
     options: []
@@ -397,7 +408,7 @@ function openEdit(row) {
     minValue: row.minValue ?? null,
     maxValue: row.maxValue ?? null,
     regexPattern: row.regexPattern || '',
-    fillCycleDays: row.fillCycleDays ?? 30,
+    fillCycleDays: row.fillCycleDays ?? null,
     placeholder: row.placeholder || '',
     description: row.description || '',
     options: (row.options || []).map((o) => ({ ...o }))
@@ -423,6 +434,13 @@ async function save() {
   try {
     await formRef.value?.validate()
   } catch (_) {
+    return
+  }
+  if (
+    cycleEnabled.value &&
+    (!Number.isInteger(form.fillCycleDays) || form.fillCycleDays < 1 || form.fillCycleDays > 3650)
+  ) {
+    message.warning('周期天数需为 1-3650 之间的整数')
     return
   }
   if (isSelectType(form.fieldType)) {

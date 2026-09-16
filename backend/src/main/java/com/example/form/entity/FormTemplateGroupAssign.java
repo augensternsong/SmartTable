@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 @TableName("form_template_group_assign")
 public class FormTemplateGroupAssign implements Serializable {
 
-    @TableId(type = IdType.ASSIGN_ID)
+    @TableId(type = IdType.ASSIGN_UUID)
     private String id;
 
     private String templateId;

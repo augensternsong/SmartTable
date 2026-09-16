@@ -33,7 +33,7 @@ mybatis-plus:
     log-impl: org.apache.ibatis.logging.nologging.NoLoggingImpl
   global-config:
     db-config:
-      id-type: ASSIGN_ID   # 默认雪花, 但实体里我们会用自定义NanoId生成器覆盖
+      id-type: ASSIGN_UUID # String 主键走自定义 NanoIdGenerator.nextUUID() 生成 8 位 NanoId
       logic-delete-field: deleted
       logic-delete-value: 1
       logic-not-delete-value: 0

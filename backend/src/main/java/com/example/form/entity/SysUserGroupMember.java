@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 @TableName("sys_user_group_member")
 public class SysUserGroupMember implements Serializable {
 
-    @TableId(type = IdType.ASSIGN_ID)
+    @TableId(type = IdType.ASSIGN_UUID)
     private String id;
 
     private String userId;

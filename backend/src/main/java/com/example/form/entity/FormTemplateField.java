@@ -1,6 +1,7 @@
 package com.example.form.entity;
 
 import com.baomidou.mybatisplus.annotation.FieldFill;
+import com.baomidou.mybatisplus.annotation.FieldStrategy;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -18,7 +19,7 @@ import java.time.LocalDateTime;
 @TableName("form_template_field")
 public class FormTemplateField implements Serializable {
 
-    @TableId(type = IdType.ASSIGN_ID)
+    @TableId(type = IdType.ASSIGN_UUID)
     private String id;
 
     private String templateId;
@@ -35,19 +36,26 @@ public class FormTemplateField implements Serializable {
 
     private Integer required;
 
+    @TableField(updateStrategy = FieldStrategy.ALWAYS)
     private Integer maxLength;
 
+    @TableField(updateStrategy = FieldStrategy.ALWAYS)
     private BigDecimal minValue;
 
+    @TableField(updateStrategy = FieldStrategy.ALWAYS)
     private BigDecimal maxValue;
 
+    @TableField(updateStrategy = FieldStrategy.ALWAYS)
     private String regexPattern;
 
     /** 填写周期天数, NULL表示无周期 */
+    @TableField(updateStrategy = FieldStrategy.ALWAYS)
     private Integer fillCycleDays;
 
+    @TableField(updateStrategy = FieldStrategy.ALWAYS)
     private String placeholder;
 
+    @TableField(updateStrategy = FieldStrategy.ALWAYS)
     private String description;
 
     /** ACTIVE / INACTIVE */
